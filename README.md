@@ -8,14 +8,15 @@
  - Used scrapy and its CrawlSpider.
  - Code for my spider can be found in reddit_scraper/spiders/spider.py 
  - Rules to discover links on reddit as well as rules to discover pagination buttons
- - my spider will save its results (response url) in a .txt file in crawler_results
+ - The spider will save its results (response url) in a .txt file in crawler_results
  
 ## Running The Program
+ - Edit Filepaths in Master.java, Slave.java, spider.py to your own
  - Compile the code with "make"
  - Need at least 2 terminals/machines
  - Have one be the master by running "java Master"
  - The rest are slaves by running "java Slave"
  - Slaves will need to add their master in <master ip>,<master port number> i.e. "127.0.1.1,8000"
  - After all slaves are added, on the master type in the command "start"
- - wait until all slaves are completed, the master will print out the time logs and exit the program
- - clean up files with "make clean"
+ - Wait until all slaves are completed, the master will print out the time logs and exit the program
+ - Clean up files with "make clean"
