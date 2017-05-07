@@ -17,5 +17,5 @@
  - The rest are slaves by running "java Slave"
  - Slaves will need to add their master in <master ip>,<master port number> i.e. "127.0.1.1,8000"
  - After all slaves are added, on the master type in the command "start"
- - wait til all slaves are completed, the master will print out the time logs and exit the program
+ - wait until all slaves are completed, the master will print out the time logs and exit the program
  - clean up files with "make clean"
