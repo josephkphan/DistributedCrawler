@@ -1,16 +1,16 @@
-# DistributedCrawler
+## DistributedCrawler
 
-# Used a Master Slave model.
+## Used a Master Slave model.
  - Master will load balance all of the links and tell the slaves which links they need to crawl. 
  - Slaves will crawl the links given to them
 
-# Crawler
+## Crawler
  - Used scrapy and its CrawlSpider.
  - Code for my spider can be found in reddit_scraper/spiders/spider.py 
  - Rules to discover links on reddit as well as rules to discover pagination buttons
  - my spider will save its results (response url) in a .txt file in crawler_results
  
-# Running The Program
+## Running The Program
  - Compile the code with "make"
  - Need at least 2 terminals/machines
  - Have one be the master by running "java Master"
