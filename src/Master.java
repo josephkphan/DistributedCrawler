@@ -17,15 +17,16 @@ public class Master {
     private int portNumber;                             // Your Port Number
     private ArrayList<Socket> slaveList;
     private long startTime, endtime;
-    private String filePath = "/home/jphan/IdeaProjects/DistributedCrawler/src/resources/crawl_list.txt";
+    private String dir = "/home/jphan/IdeaProjects/DistributedCrawler/src/resources/";
+    private String filePath = dir + "crawl_list.txt";
     private ArrayList<Pair<String, Integer>> crawlList;
     private String[] slaveCrawlList;
 
     public Master() {
         slaveList = new ArrayList<>();
         crawlList = new ArrayList<>();
-
-        get_crawl_list();
+        createOutputDirectory();
+        getCrawlList();
         createServerSocket();
         getIPAddress();
         displayIPAddress();
@@ -39,7 +40,12 @@ public class Master {
         }
     }
 
-    private void get_crawl_list() {
+    private void createOutputDirectory(){
+        File f = new File(dir);
+        f.mkdir();
+    }
+
+    private void getCrawlList() {
         try {
             File file = new File(filePath);
             FileReader fileReader = new FileReader(file);

@@ -9,9 +9,12 @@
  - Code for my spider can be found in reddit_scraper/spiders/spider.py 
  - Rules to discover links on reddit as well as rules to discover pagination buttons
  - The spider will save its results (response url) in a .txt file in crawler_results
- 
-## Running The Program
+
+## Setup
  - Edit Filepaths in Master.java, Slave.java, spider.py to your own
+ - Include a List of Starting URLs in resources with name "crawl_list.txt"
+
+## Running The Program
  - Compile the code with "make"
  - Need at least 2 terminals/machines
  - Have one be the master by running "java Master"
