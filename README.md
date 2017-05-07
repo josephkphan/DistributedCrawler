@@ -1,6 +1,6 @@
 # DistributedCrawler
 
-## Used a Master Slave model.
+## Master/Slave model
  - Master will load balance all of the links and tell the slaves which links they need to crawl. 
  - Slaves will crawl the links given to them
 
