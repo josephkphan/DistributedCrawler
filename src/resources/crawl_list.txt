@@ -1,0 +1,3 @@
+dailyprogrammer:100
+dailyprogrammer_ideas:100
+anime:100
