@@ -14,6 +14,8 @@
  - Edit Filepaths in Master.java, Slave.java, spider.py to your own
  - Include a List of Starting URLs in resources with name "crawl_list.txt"
 
+## Format
+
 ## Running The Program
  - Compile the code with "make"
  - Need at least 2 terminals/machines

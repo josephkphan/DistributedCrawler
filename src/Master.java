@@ -15,16 +15,19 @@ public class Master {
     private ServerSocket listener;                      // Used to accept other socket connections
     private InetAddress ip;                             // Your IP Address
     private int portNumber;                             // Your Port Number
-    private ArrayList<Socket> slaveList;
-    private long startTime, endtime;
-    private String dir = "/home/jphan/IdeaProjects/DistributedCrawler/src/resources/";
-    private String filePath = dir + "crawl_list.txt";
-    private ArrayList<Pair<String, Integer>> crawlList;
-    private String[] slaveCrawlList;
+    private ArrayList<Socket> slaveList;                // Slaves are added here
+    private long startTime, endtime;                    // used to save output times
+    private String crawlListPath = Path.srcFolder + "resources/crawl_list.txt"; //file path to crawl list
+    private ArrayList<Pair<String, Integer>> crawlList; // Contains a List of Links with # sublinks (to be balanced)
+    private String[] slaveCrawlList;                    // Balanced links for slaves.
+    private String[] slaveTimeResults;
 
     public Master() {
+        // Initialize ArrayLists
         slaveList = new ArrayList<>();
         crawlList = new ArrayList<>();
+
+        //Start up Methods
         createOutputDirectory();
         getCrawlList();
         createServerSocket();
@@ -32,28 +35,41 @@ public class Master {
         displayIPAddress();
         createSocketListenerThread();
         waitToCrawl();
+
+        // Start Balancing and Crawling
         startTime = System.currentTimeMillis();
         assignCrawlLinks();
-        startCrawling();
+        displaySlaveCrawlList();
         broadcastSlavesToStartCrawling();
-        while (true) {
-        }
+
+        // Will wait until all slaves are done before exiting
+        while (true) { }
     }
 
-    private void createOutputDirectory(){
-        File f = new File(dir);
+    ////////////////////////////////////  Start Up Methods  ///////////////////////////////////////
+    /**
+     * Creates the Output Directory inside src folder.
+     */
+    private void createOutputDirectory(){   //todo Doesnt work!!!
+        File f = new File(Path.srcFolder+ "crawler_results");
         f.mkdir();
     }
 
+    /**
+     * Reads Crawl List File and saves data to ArrayList "crawlList"
+     */
     private void getCrawlList() {
         try {
-            File file = new File(filePath);
-            FileReader fileReader = new FileReader(file);
-            BufferedReader bufferedReader = new BufferedReader(fileReader);
             String line;
             String[] split;
+            // Open File
+            File file = new File(crawlListPath);
+            FileReader fileReader = new FileReader(file);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            // Read Line by Line from the file
             while ((line = bufferedReader.readLine()) != null) {
-                split = line.split(":");
+                split = line.split(":");  // Link on Left side of ':' and # sublinks on Right side
+                // i.e. "dailyprogrammer:100" is the reddit sublink "dailyprogrammer" with "100" subpages
                 crawlList.add(new Pair<>(split[0], Integer.parseInt(split[1])));
                 System.out.println(crawlList.get(crawlList.size() - 1).getKey());
             }
@@ -71,9 +87,106 @@ public class Master {
             try {
                 port = ThreadLocalRandom.current().nextInt(START, END);
                 listener = new ServerSocket(port);
-                portNumber = port;                  // will only reach here on a successful Port
+                portNumber = port; // will only reach here on a successful Port
                 break;
             } catch (IOException e) {
+                // will retry to create a server socket
+            }
+        }
+    }
+
+    /**
+     * Gets and saves the IPAddress of the current Server
+     */
+    private void getIPAddress() {
+        try {
+            ip = InetAddress.getLocalHost();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Wait until master types in "start" to begin crawling
+     */
+    private void waitToCrawl() {
+        Scanner scanner = new Scanner(System.in);
+        String inputString = "";
+        while (!inputString.equals("start")) {
+            System.out.print("Type in \"Start\" To begin Crawling: ");
+            inputString = scanner.nextLine();
+            if (inputString.equals("exit")) {
+                exit(0);
+            } else if (!inputString.equals("start")) {
+                System.out.println("Incorrect Argument, Try Again");
+            }
+        }
+    }
+
+    //////////////////////////////////// Helper / Print Methods /////////////////////////////////////////
+
+    /**
+     * Display IP Address to Screen
+     */
+    private void displayIPAddress() {
+        System.out.println(ip.getHostAddress() + " at port number: " + Integer.toString(portNumber));
+    }
+
+    /**
+     * will close the socket connection
+     */
+    private void closeSocket(Socket socket) {
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Prints out Final Results. called when all crawling is done
+     */
+    private void displayResults(){
+        displaySlaveTimeResults();
+        System.out.println("Total Time (ms): " + (endtime - startTime));
+        System.out.println("Finished Crawling : Exiting Program");
+    }
+
+    /**
+     * Prints out the load balanced slave-crawl assignments onto terminal
+     */
+    private void displaySlaveCrawlList(){
+        System.out.println("\n--------------Slave Crawl Assignment ---------------");
+        for(int i=0; i<slaveCrawlList.length; i++){
+            System.out.println("Slave " + Integer.toString(i) + ": " + slaveCrawlList[i] );
+        }
+    }
+
+    /**
+     * Prints out Time results onto terminal
+     */
+    private void displaySlaveTimeResults(){
+        System.out.println("\n--------------Slave Time Results ---------------");
+        for(int i=0; i<slaveTimeResults.length; i++){
+            System.out.println("Slave " + Integer.toString(i) + ": " + slaveTimeResults[i] );
+        }
+    }
+
+    ///////////////////////////////////// Server Methods /////////////////////////////////////////
+
+    /**
+     * Send a List to every slave containing what they should crawl
+     */
+    private void broadcastSlavesToStartCrawling() {
+        for (int i = 0; i < slaveList.size(); i++) {
+            try {
+                Socket socket = slaveList.get(i);
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                out.println("start:" + slaveCrawlList[i]);
+                // "start" is a keyword for the slaves to know to start. ':' is a separator used to parse the
+                // keyword from the list of reddit sublinks.
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
@@ -88,13 +201,20 @@ public class Master {
             public void run() {
                 while (true) {
                     try {
+                        // Listener.accept() is a blocking code, waiting or a socket to connect
                         Socket socket = listener.accept();      //blocking code - will wait until another host wants to
+
+                        // A Slave just formed a connection. Print out status on terminal
                         slaveList.add(socket);
                         System.out.println("\n    Slave Just Added\n    # Slaves = " + Integer.toString(slaveList.size()));
                         System.out.print("Type in \"start\" To begin Crawling: ");
+
+                        // Reply back to Slave that they were successfully added
                         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                         out.println("Successfully Added, Wait to begin Crawling...");
-                        createSocketInputStreamHandlerThread(socket); // connect with this host's server socket
+
+                        // Creates a thread that listens on the socket stream with the newly added Slave
+                        createSocketInputStreamHandlerThread(socket);
                     } catch (Exception e) {
                         e.printStackTrace();
                         break;
@@ -135,19 +255,18 @@ public class Master {
     }
 
     /**
-     * This parses messages received by the socket streams. It will then call the corresponding method to
-     * respond to the request. These messages are requests from other users
+     * This parses messages received by the socket streams and respond accordingly
      */
     private void readServerInputStream(String s, Socket socket) {
         String[] split = s.split(":");
         if (split[0].equals("finished")) {
+            slaveTimeResults[slaveList.indexOf(socket)] = split[1];
             slaveList.remove(socket);
             closeSocket(socket);
             if (slaveList.size() == 0) {
-                //todo Send completion Time too ?to log it
+                // All Slaves Finished! Print out execution time
                 endtime = System.currentTimeMillis();
-                System.out.println("Total Time (ms): " + (endtime - startTime));
-                System.out.println("Finished Crawling : Exiting Program");
+                displayResults();
                 exit(0);
             }
 
@@ -156,78 +275,32 @@ public class Master {
         }
     }
 
-    /**
-     * Gets and saves the IPAddress of the current host
-     */
-    private void getIPAddress() {
-        try {
-            ip = InetAddress.getLocalHost();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void displayIPAddress() {
-        System.out.println(ip.getHostAddress() + " at port number: " + Integer.toString(portNumber));
-    }
+    ////////////////////////////////////////  Load Balancing //////////////////////////////////
 
     /**
-     * will close the socket.
+     * This is the load balancing part of the program. Currently on Round Robin
      */
-    private void closeSocket(Socket socket) {
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-
-        }
-    }
-
-    private void waitToCrawl() {
-        Scanner scanner = new Scanner(System.in);
-        String inputString = "";
-        while (!inputString.equals("start")) {
-            System.out.print("Type in \"Start\" To begin Crawling: ");
-            inputString = scanner.nextLine();
-            if (inputString.equals("exit")) {
-                exit(0);
-            } else if (!inputString.equals("start")) {
-                System.out.println("Incorrect Argument, Try Again");
-            }
-        }
-    }
-
-    private void broadcastSlavesToStartCrawling() {
-        for (int i = 0; i < slaveList.size(); i++) {
-            try {
-                Socket socket = slaveList.get(i);
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                out.println("start:" + slaveCrawlList[i]);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void startCrawling() {
-        // todo Should distribute links
-
-        // should process # of sublinks?
-    }
-
     private void assignCrawlLinks() {
+        // Initialize Array and variables
+        slaveTimeResults = new String[slaveList.size()];
         slaveCrawlList = new String[slaveList.size()];
         int counter = 0;
         Pair<String, Integer> p;
+
+        // Initialize blank Strings
         for (int i = 0; i < slaveCrawlList.length; i++) {
             slaveCrawlList[i] = "";
         }
+
+        // Round robin style assignment from links to slaves
         for (int i = 0; i < crawlList.size(); i++) {
             p = crawlList.get(i);
             slaveCrawlList[counter] += p.getKey();
             slaveCrawlList[counter++] += ",";
             counter %= slaveList.size();
         }
+
+        // Remove the last ',' for every entry of the array
         for (int i = 0; i < slaveCrawlList.length; i++) {
             if (slaveCrawlList[i].charAt(slaveCrawlList[i].length() - 1) == ',') {
                 slaveCrawlList[i] = slaveCrawlList[i].substring(0, slaveCrawlList[i].length() - 1);

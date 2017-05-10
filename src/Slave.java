@@ -7,29 +7,30 @@ import java.util.Scanner;
 
 
 public class Slave {
-    private Socket socket;
-    private long startTime, endtime;
-    private final String filePath = "/home/jphan/IdeaProjects/DistributedCrawler/src/resources/scrapy_input.txt";
+    private Socket socket;              // Used to Connect with the Master
+    private long startTime, endtime;    // Used to Time the Crawler
+    private final String filePath = Path.srcFolder + "resources/scrapy_input.txt";
 
     public Slave() {
+        // Initialize Variables
         Scanner scanner = new Scanner(System.in);
         String inputString = "";
         String[] split;
+
+        // Keep prompting User to connect to Master until a successful connection is made
         while (true) {
             System.out.print("Input <Master IP Address>,<Port Number>: ");
             try {
                 inputString = scanner.nextLine();
                 split = inputString.split(",");
                 socket = new Socket(split[0], Integer.parseInt(split[1]));
-                createSocketInputStreamHandlerThread(socket);
+                createSocketInputStreamHandlerThread(socket);               // Successfully Connected to Master!
                 break;
             } catch (Exception e) {
                 System.out.println("Invalid IP Or Port number: Try Again");
             }
         }
-
     }
-
 
     /**
      * This is called whenever a new socket channel is created. A new thread will constantly wait to see if new
@@ -46,11 +47,11 @@ public class Slave {
                         String streamString = in.readLine();
                         readServerInputStream(streamString);
                         if (streamString.equals("null")) {
-                            // Will Check whether the input Stream is Null - If it is null then socket connection failed
+                            // Connection Lost
                             break;
                         }
                     } catch (Exception e) {
-//                        System.out.println("Socket Closed");
+//                        System.out.println("Socket Problem");
                         break;
                     }
                 }
@@ -65,14 +66,19 @@ public class Slave {
      * respond to the request. These messages are requests from other users
      */
     private void readServerInputStream(String s) {
+        // Initialize Variables
         String[] split = s.split(":");
         String[] split2;
-        if (split[0].equals("start")) {         // Read "in" or "read" from input stream
+
+        // Master told Slave to Start Crawling
+        if (split[0].equals("start")) {
             System.out.println(s);
+            // Parse out each Link from the Link-List given from Master
             split2 = split[1].split(",");
             startTime = System.currentTimeMillis();
-            for(int i = 0; i<split2.length; i++){
-                crawlPage(split2[i]);
+            for (String link : split2) {
+                //Crawl each Page one by one - NOT multithreaded
+                crawlPage(link);
             }
             finishedCrawling();
         }else {                                        // Got some other garbage - could be null or something else
@@ -80,6 +86,9 @@ public class Slave {
         }
     }
 
+    /**
+     * Run Scrappy on a given starting link (subreddit)
+     */
     private void crawlPage(String page) {
         System.out.println("Crawling: " + page);
         saveScrapyInputToFile(filePath,page);
@@ -93,12 +102,13 @@ public class Slave {
 //            while ((line = buf.readLine()) != null) {
 //                System.out.println(line);
 //            }
+            // The above was removed because it takes too much memory  Hit JVM max limit
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     /**
-     * Writes Tuple Space to a file
+     * Saves a String to to given File path
      */
     public void saveScrapyInputToFile(String filePath, String string) {
         try {
@@ -106,10 +116,13 @@ public class Slave {
             writer.print(string);
             writer.close();
         } catch (IOException e) {
-            // do something
+            System.out.println("Error Writing to Input File");
         }
     }
 
+    /**
+     * Called after Finished Crawling. It will send back ot master notifying this slaves finished and its time
+     */
     private void finishedCrawling(){
         endtime = System.currentTimeMillis();
         try {

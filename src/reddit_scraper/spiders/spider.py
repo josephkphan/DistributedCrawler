@@ -11,12 +11,12 @@ class ProgrammerSpider(CrawlSpider):
     allowed_domains = ["www.reddit.com"]  
     start_urls = ['https://www.reddit.com/r/'+reddit_subpage+'/']
     rules = [
-        # Rule #1
+        # Rule #1 : Looks for reddit sub pages 
         Rule(LinkExtractor(
-            allow=['/r/'+reddit_subpage+'/comments/']),  # will look for links with thie format
+            allow=['/r/'+reddit_subpage+'/comments/']),  # will look for links with  format
             callback='parse_problem',  # calls this method whenever it gets a response from that url^
             follow=False),  # This will Go into the found website! but will not go any deeper
-        # Rule #2
+        # Rule #2 : Looks for Pagination 
         Rule(LinkExtractor(
         allow=['/r/'+reddit_subpage+'/\?count=\d*&after=\w*']),
             callback='pagination', 
@@ -27,9 +27,11 @@ class ProgrammerSpider(CrawlSpider):
     # Callback method for a found link
     # This will retrieve the information from the specific site from Rule #1
     def parse_problem(self, response):
+        # Get filepath 
         with open('/home/jphan/IdeaProjects/DistributedCrawler/src/resources/scrapy_input.txt') as f:
             reddit_subpage = str(f.readlines()[0])
             f.close()
+        # Appends Url to File
         with open('/home/jphan/IdeaProjects/DistributedCrawler/src/crawler_results/'+reddit_subpage+'.txt', 'a') as myfile:
             myfile.write(str(response.url) + '\n')
             myfile.close()
