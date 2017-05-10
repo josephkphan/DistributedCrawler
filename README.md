@@ -10,11 +10,18 @@
  - Rules to discover links on reddit as well as rules to discover pagination buttons
  - The spider will save its results (response url) in a .txt file in crawler_results
 
-## Setup
- - Edit Filepaths in Master.java, Slave.java, spider.py to your own
- - Include a List of Starting URLs in resources with name "crawl_list.txt"
+## PreReqs
+ - Need: Anaconda, Scrapy, Python-xlwt
+ - Instructions (for Ubuntu at least)
+ - Install Anaconda -- https://www.continuum.io/downloads
+ - Install Scrappy : "conda install -c conda-forge scrapy"
+ - Note* If you still cannot run scrapy you may need to fix your path "export PATH=~/anaconda2/bin:$PATH"
+ - Install xlwt (used to save results in excel file) "sudo apt-get update" and then "sudo apt-get install python-xlwt"
+ - If that didn't work then try "pip install xlwt" (if you have pip)
 
-## Format
+## Setup
+ - Edit Filepaths in spider.py and Path.java to the src folder
+ - Include your List of Starting URLs in resources with name "crawl_list.txt"
 
 ## Running The Program
  - Compile the code with "make"

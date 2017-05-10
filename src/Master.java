@@ -18,6 +18,8 @@ public class Master {
     private ArrayList<Socket> slaveList;                // Slaves are added here
     private long startTime, endtime;                    // used to save output times
     private String crawlListPath = Path.srcFolder + "resources/crawl_list.txt"; //file path to crawl list
+    private String outputDir = Path.srcFolder+ "crawler_results";
+    private String resultFile = outputDir + "/results.txt";
     private ArrayList<Pair<String, Integer>> crawlList; // Contains a List of Links with # sublinks (to be balanced)
     private String[] slaveCrawlList;                    // Balanced links for slaves.
     private String[] slaveTimeResults;
@@ -51,7 +53,7 @@ public class Master {
      * Creates the Output Directory inside src folder.
      */
     private void createOutputDirectory(){   //todo Doesnt work!!!
-        File f = new File(Path.srcFolder+ "crawler_results");
+        File f = new File(outputDir);
         f.mkdir();
     }
 
@@ -149,7 +151,6 @@ public class Master {
     private void displayResults(){
         displaySlaveTimeResults();
         System.out.println("Total Time (ms): " + (endtime - startTime));
-        System.out.println("Finished Crawling : Exiting Program");
     }
 
     /**
@@ -160,6 +161,8 @@ public class Master {
         for(int i=0; i<slaveCrawlList.length; i++){
             System.out.println("Slave " + Integer.toString(i) + ": " + slaveCrawlList[i] );
         }
+
+        System.out.println("\n............. Waiting For Slaves............");
     }
 
     /**
@@ -169,6 +172,31 @@ public class Master {
         System.out.println("\n--------------Slave Time Results ---------------");
         for(int i=0; i<slaveTimeResults.length; i++){
             System.out.println("Slave " + Integer.toString(i) + ": " + slaveTimeResults[i] );
+        }
+    }
+
+    private void saveResults(){
+        try {
+            PrintWriter writer = new PrintWriter(resultFile, "UTF-8");
+            for(int i=0; i<slaveTimeResults.length;i++) {
+                writer.println("Slave" + Integer.toString(i) + ":" + slaveCrawlList[i] + ":" + slaveTimeResults[i]);
+            }
+            writer.println("Total Time:" + Long.toString(endtime-startTime));
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("Error Writing to Input File");
+        }
+    }
+
+    private void resultsToExcel(){
+        System.out.println("Saving Data To Excel File...");
+        String cmd = "python resultsToExcel.py";
+        Runtime run = Runtime.getRuntime();
+        try {
+            Process pr = run.exec(cmd);
+            pr.waitFor();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -261,12 +289,16 @@ public class Master {
         String[] split = s.split(":");
         if (split[0].equals("finished")) {
             slaveTimeResults[slaveList.indexOf(socket)] = split[1];
+            System.out.println("Slave " + Integer.toString(slaveList.indexOf(socket)) +" Finished -- " + split[1]);
             slaveList.remove(socket);
             closeSocket(socket);
             if (slaveList.size() == 0) {
                 // All Slaves Finished! Print out execution time
                 endtime = System.currentTimeMillis();
                 displayResults();
+                saveResults();
+                resultsToExcel();
+                System.out.println("Finished Crawling : Exiting Program");
                 exit(0);
             }
 
