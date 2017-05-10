@@ -9,6 +9,7 @@ all:	$(OBJS)
 clean: FORCE
 	rm -f *.class core *~
 	rm crawler_results/*.txt
+	rm *.xls
 
 .SUFFIXES: .java .class
 

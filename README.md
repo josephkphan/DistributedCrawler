@@ -23,7 +23,7 @@
  - Edit Filepaths in spider.py and Path.java to the src folder
  - Include your List of Starting URLs in resources with name "crawl_list.txt"
 
-## Running The Program
+## Running The Distributed Program
  - Compile the code with "make"
  - Need at least 2 terminals/machines
  - Have one be the master by running "java Master"
@@ -32,3 +32,7 @@
  - After all slaves are added, on the master type in the command "start"
  - Wait until all slaves are completed, the master will print out the time logs and exit the program
  - Clean up files with "make clean"
+
+## Running the Solo Program
+ - Compile Code with "make"
+ - Run command "java Solo"

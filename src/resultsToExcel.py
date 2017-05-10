@@ -18,7 +18,7 @@ with open('crawler_results/results.txt') as f:
             counter += 1
             sheet1.write(row,0,split[0])
             sheet1.write(row,1,split[1])
-            sheet1.write(row,2,str(split[2]))
+            sheet1.write(row,2,split[2])
             row += 1
         else:
             row = 1
