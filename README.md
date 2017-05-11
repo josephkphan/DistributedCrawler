@@ -20,7 +20,7 @@
  - If that didn't work then try "pip install xlwt" (if you have pip)
 
 ## Setup
- - Edit Filepaths in spider.py and Path.java to the src folder
+ - Edit Filepaths in Path.java to the src folder
  - Include your List of Starting URLs in resources with name "crawl_list.txt"
 
 ## Running The Distributed Program

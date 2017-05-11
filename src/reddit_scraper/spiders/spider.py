@@ -6,7 +6,7 @@ import scrapy
 
 class ProgrammerSpider(CrawlSpider):
     name = "spider"  
-    with open('/home/jphan/IdeaProjects/DistributedCrawler/src/resources/scrapy_input.txt') as f:
+    with open('resources/scrapy_input.txt') as f:
         reddit_subpage = str(f.readlines()[0])
     allowed_domains = ["www.reddit.com"]  
     start_urls = ['https://www.reddit.com/r/'+reddit_subpage+'/']
@@ -28,11 +28,11 @@ class ProgrammerSpider(CrawlSpider):
     # This will retrieve the information from the specific site from Rule #1
     def parse_problem(self, response):
         # Get filepath 
-        with open('/home/jphan/IdeaProjects/DistributedCrawler/src/resources/scrapy_input.txt') as f:
+        with open('resources/scrapy_input.txt') as f:
             reddit_subpage = str(f.readlines()[0])
             f.close()
         # Appends Url to File
-        with open('/home/jphan/IdeaProjects/DistributedCrawler/src/crawler_results/'+reddit_subpage+'.txt', 'a') as myfile:
+        with open('crawler_results/'+reddit_subpage+'.txt', 'a') as myfile:
             myfile.write(str(response.url) + '\n')
             myfile.close()
         # print response.url
