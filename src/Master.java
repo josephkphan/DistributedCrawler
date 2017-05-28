@@ -2,8 +2,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.System.exit;
@@ -40,7 +39,8 @@ public class Master {
 
         // Start Balancing and Crawling
         startTime = System.currentTimeMillis();
-        assignCrawlLinks();
+//        assignCrawlLinksRoundRobin();
+        assignCrawlLinksWeightedRoundRobin();           // Todo Currently On Weighted Round Robin
         displaySlaveCrawlList();
         broadcastSlavesToStartCrawling();
 
@@ -312,7 +312,7 @@ public class Master {
     /**
      * This is the load balancing part of the program. Currently on Round Robin
      */
-    private void assignCrawlLinks() {
+    private void assignCrawlLinksRoundRobin() {
         // Initialize Array and variables
         slaveTimeResults = new String[slaveList.size()];
         slaveCrawlList = new String[slaveList.size()];
@@ -339,6 +339,54 @@ public class Master {
             }
             System.out.println(slaveCrawlList[i]);
         }
+    }
+
+    /**
+     * This is the load balancing part of the program. Currently on Round Robin
+     */
+    private void assignCrawlLinksWeightedRoundRobin() {
+        // Initialize Array and variables
+        slaveTimeResults = new String[slaveList.size()];
+        slaveCrawlList = new String[slaveList.size()];
+        int[] weights = new int[2];
+
+        int counter = 0;
+        Pair<String, Integer> p;
+
+        // Initialize blank Strings
+        for (int i = 0; i < slaveCrawlList.length; i++) {
+            slaveCrawlList[i] = "";
+        }
+
+        // Round robin style assignment from links to slaves
+        for (int i = 0; i < crawlList.size(); i++) {
+            p = crawlList.get(i);
+            System.out.println(Arrays.toString(weights));
+            int index = getMinIndex(weights);
+            System.out.println("index = " + index);
+            slaveCrawlList[index] += p.getKey();
+            slaveCrawlList[index] += ",";
+            weights[index]+=p.getValue();
+        }
+        System.out.println(Arrays.toString(weights));
+
+        // Remove the last ',' for every entry of the array
+        for (int i = 0; i < slaveCrawlList.length; i++) {
+            if (slaveCrawlList[i].charAt(slaveCrawlList[i].length() - 1) == ',') {
+                slaveCrawlList[i] = slaveCrawlList[i].substring(0, slaveCrawlList[i].length() - 1);
+            }
+            System.out.println(slaveCrawlList[i]);
+        }
+    }
+
+    private int getMinIndex(int[] array){
+        int minIndex = 0;
+        for(int i=1; i<array.length; i++){
+            if (array[minIndex] > array[i]){
+                minIndex = i;
+            }
+        }
+        return minIndex;
     }
 
     public static void main(String[] args) {

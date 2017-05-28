@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.ArrayList;
 
-public class Solo {
+public class Preprocessor {
 
     private long startTime, endtime;                    // used to save output times
     private String crawlListPath = Path.srcFolder + "resources/crawl_list.txt"; //file path to crawl list
@@ -11,7 +11,7 @@ public class Solo {
     private final String filePath = Path.srcFolder + "resources/scrapy_input.txt";
     private ArrayList<String> resultTimes;
 
-    public Solo() {
+    public Preprocessor() {
         // Initialize ArrayLists
         crawlList = new ArrayList<>();
         resultTimes = new ArrayList<>();
@@ -71,7 +71,7 @@ public class Solo {
         long startTime = System.currentTimeMillis();
         System.out.println("Crawling: " + page);
         saveScrapyInputToFile(filePath, page);
-        String cmd = "scrapy crawl --nolog spider";
+        String cmd = "scrapy crawl --nolog counter";
         Runtime run = Runtime.getRuntime();
         try {
             Process pr = run.exec(cmd);
@@ -138,7 +138,7 @@ public class Solo {
     }
 
     public static void main(String[] args) {
-        new Solo();
+        new Preprocessor();
     }
 
 }
