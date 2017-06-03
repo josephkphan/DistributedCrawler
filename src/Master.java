@@ -85,16 +85,25 @@ public class Master {
      * Creates a server socket. This will keep attempting random ports until it finds a successful one
      */
     private void createServerSocket() {
-        for (int port = START; port <= END; port++) {
-            try {
-                port = ThreadLocalRandom.current().nextInt(START, END);
-                listener = new ServerSocket(port);
-                portNumber = port; // will only reach here on a successful Port
-                break;
-            } catch (IOException e) {
-                // will retry to create a server socket
-            }
+        try {
+            listener = new ServerSocket(8010);
+            portNumber = 8010; // will only reach here on a successful Port
+        } catch (IOException e) {
+            System.out.println("Failed to make connection with Port 8010");
+            exit(0);
+            // will retry to create a server socket
         }
+        //For Random Port
+//        for (int port = START; port <= END; port++) {
+//            try {
+//                port = ThreadLocalRandom.current().nextInt(START, END);
+//                listener = new ServerSocket(port);
+//                portNumber = port; // will only reach here on a successful Port
+//                break;
+//            } catch (IOException e) {
+//                // will retry to create a server socket
+//            }
+//        }
     }
 
     /**
