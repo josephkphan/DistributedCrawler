@@ -22,7 +22,8 @@ class MyJsonHandler():
         except IOError as e:
             print 'could not read ' + file_path
             
-count_dict = MyJsonHandler.get_data_from_json_file('crawler_results/count.json')
+count_dict = MyJsonHandler.get_data_from_json_file('resources/count.json')
+print count_dict
 with open('resources/crawl_list.txt', 'r+') as myfile:
     for page in count_dict:
         myfile.write(str(page) + ':'+ str(count_dict[page]) + '\n')
