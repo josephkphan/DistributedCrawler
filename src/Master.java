@@ -357,7 +357,7 @@ public class Master {
         // Initialize Array and variables
         slaveTimeResults = new String[slaveList.size()];
         slaveCrawlList = new String[slaveList.size()];
-        int[] weights = new int[2];
+        int[] weights = new int[slaveList.size()];
 
         int counter = 0;
         Pair<String, Integer> p;
