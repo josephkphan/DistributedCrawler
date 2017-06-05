@@ -299,7 +299,7 @@ public class Master {
         if (split[0].equals("finished")) {
             slaveTimeResults[slaveList.indexOf(socket)] = split[1];
             System.out.println("Slave " + Integer.toString(slaveList.indexOf(socket)) +" Finished -- " + split[1]);
-            slaveList.remove(socket);
+//            slaveList.remove(socket);
             closeSocket(socket);
             if (slaveList.size() == 0) {
                 // All Slaves Finished! Print out execution time
