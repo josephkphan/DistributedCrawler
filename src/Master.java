@@ -22,6 +22,7 @@ public class Master {
     private ArrayList<Pair<String, Integer>> crawlList; // Contains a List of Links with # sublinks (to be balanced)
     private String[] slaveCrawlList;                    // Balanced links for slaves.
     private String[] slaveTimeResults;
+    private int slaveFinishedCounter;
 
     public Master() {
         // Initialize ArrayLists
@@ -29,6 +30,7 @@ public class Master {
         crawlList = new ArrayList<>();
 
         //Start up Methods
+        slaveFinishedCounter = 0;
         createOutputDirectory();
         getCrawlList();
         createServerSocket();
@@ -301,7 +303,8 @@ public class Master {
             System.out.println("Slave " + Integer.toString(slaveList.indexOf(socket)) +" Finished -- " + split[1]);
 //            slaveList.remove(socket);
             closeSocket(socket);
-            if (slaveList.size() == 0) {
+            slaveFinishedCounter++;
+            if (slaveList.size() == slaveFinishedCounter) {
                 // All Slaves Finished! Print out execution time
                 endtime = System.currentTimeMillis();
                 displayResults();
